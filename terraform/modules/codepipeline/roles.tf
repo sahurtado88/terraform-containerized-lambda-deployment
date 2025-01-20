@@ -45,6 +45,29 @@ resource "aws_iam_role_policy" "lambda_codepipeline_policy" {
         "codecommit:*"
       ],
       "Resource": "*"
+    },
+    {
+    "Action": [
+        "codestar-connections:UseConnection"
+    ],
+    "Resource": "*",
+    "Effect": "Allow"
+    },
+    {
+    "Action": [
+        "appconfig:StartDeployment",
+        "appconfig:GetDeployment",
+        "appconfig:StopDeployment"
+    ],
+    "Resource": "*",
+    "Effect": "Allow"
+    },
+    {
+    "Action": [
+        "codecommit:GetRepository"
+    ],
+    "Resource": "*",
+    "Effect": "Allow"
     }
   ]
 }

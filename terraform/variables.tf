@@ -8,10 +8,14 @@ variable "team_name" {
   type        = string
 }
 
+variable "project_id" {
+  description = "Your Project ID"
+  type        = string
+}
 variable "region" {
   description = "Your AWS Region"
   type        = string
-  default = "eu-east-1"
+  default     = "eu-east-1"
 }
 variable "codebuild_type" {
   description = "Your CodeBuild Project Type"
@@ -30,7 +34,7 @@ variable "codecommit_branch" {
   type        = string
 }
 variable "terraform_ver" {
-    description = "Terraform Version number for passing it to codebuild"
-    default     = "1.9.8"
-    type        = string
+  description = "Terraform Version number for passing it to codebuild"
+  default     = "1.9.8"
+  type        = string
 }

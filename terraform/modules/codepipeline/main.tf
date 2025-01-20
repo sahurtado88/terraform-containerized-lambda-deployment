@@ -5,10 +5,10 @@ resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = "${var.s3_bucket_namespace}-codepipeline-bucket"
 }
 
-resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
+/* resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
   bucket = aws_s3_bucket.codepipeline_bucket.id
   acl    = "private"
-}
+} */
 
 resource "aws_codebuild_project" "project" {
     count           = length(local.projects)
@@ -49,6 +49,9 @@ resource "aws_codebuild_project" "project" {
     }
 }
 
+data "aws_codestarconnections_connection" "githubconnection" {
+  name          = "sahurtadoconn"
+}
 resource "aws_codepipeline" "codepipeline" {
   name     = "${var.env_namespace}_pipeline"
   role_arn = aws_iam_role.lambda_codepipeline_role.arn
@@ -65,16 +68,17 @@ resource "aws_codepipeline" "codepipeline" {
       name     = "Source"
       category = "Source"
       owner    = "AWS"
-      provider = "CodeCommit"
+      provider = "CodeStarSourceConnection"
       version  = "1"
       output_artifacts = [
       "source_output"]
 
       configuration = {
         BranchName      = var.codecommit_branch
-        RepositoryName  = var.codecommit_repo
+        ConnectionArn    = data.aws_codestarconnections_connection.githubconnection.arn
+        FullRepositoryId = "sahurtado88/terraform-containerized-lambda-deployment"
       }
-    }
+   }
   }
 
   stage {
