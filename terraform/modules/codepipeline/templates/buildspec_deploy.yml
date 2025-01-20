@@ -7,14 +7,15 @@ phases:
       python: 3.7
     commands:
       - echo Installing Terraform and HCLQ...
-      - yum install -y unzip
-      - sh "rm -rf terraform/"
       - tf_version=$TERRAFORM_VERSION
-      - curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
-      - unzip -fo terraform.zip
-      - mv terraform /usr/local/bin/
       - curl -sSLo install.sh https://install.hclq.sh
       - sh install.sh
+      - yum install -y yum-utils shadow-utils
+      - yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+      - yum -y install terraform
+      - terraform --version
+
+
   pre_build:
     commands:
       - echo Logging into Amazon ECR...
@@ -22,7 +23,6 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - terraform --version
       - cd aws_lambda_functions/
       - echo Updating ENV_namespace in terraform.tfvars
       - cat terraform.tfvars | hclq set 'env_namespace' $ENV_NAMESPACE | hclq set 'ecr_repo_url' $REPO_URI | hclq set 'ecr_repo_arn' $REPO_ARN | tee terraform.tfvars
