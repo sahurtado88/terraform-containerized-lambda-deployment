@@ -5,10 +5,6 @@ resource "aws_s3_bucket" "codepipeline_bucket" {
   bucket = "${var.s3_bucket_namespace}-codepipeline-bucket"
 }
 
-/* resource "aws_s3_bucket_acl" "codepipeline_bucket_acl" {
-  bucket = aws_s3_bucket.codepipeline_bucket.id
-  acl    = "private"
-} */
 
 resource "aws_codebuild_project" "project" {
     count           = length(local.projects)
@@ -22,9 +18,6 @@ resource "aws_codebuild_project" "project" {
       compute_type                = var.codebuild_compute_type
       image                       = var.codebuild_image
       type                        = var.codebuild_type
-      #compute_type               = "BUILD_GENERAL1_MEDIUM"
-      #image                      = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
-      #type                       = "LINUX_CONTAINER"
       image_pull_credentials_type = "CODEBUILD"
       privileged_mode             = true
 
@@ -39,7 +32,7 @@ resource "aws_codebuild_project" "project" {
     source {
         type      = "CODEPIPELINE"
         buildspec = file("${path.module}/templates/buildspec_${local.projects[count.index]}.yml")
-        #buildspec = file("${path.module}/stage1-buildspec.yml")
+
     }
 
     source_version = "main"

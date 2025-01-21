@@ -16,12 +16,9 @@ To achieve this, follow the pre-requisites steps below
 2. Install AWS CLI : [link](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 3. Configure AWS CLI with AWS Account do : [link](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
 4. Create a S3 Bucket in us-east-1. This bucket will be used to store the terraform state file. Note the bucket arn as it will be used in the steps below.
+6. Create a github repository where you will store all the files you find here
+5. Create a github connection : [link](https://docs.aws.amazon.com/codepipeline/latest/userguide/connections-github.html) Note the connection arn and the name of the github repository to be used in the following steps.
 
-
-
-Infrastructure for Codepipeline Deployment. ie, code under the path terraform/
-Uploading the Lambda code to CodeCommit Repository. ie, lambda code on path lambda_bootstrap/
-To achieve this, follow the pre-requisites steps below
 
 
 ## Folder Structure
@@ -90,6 +87,8 @@ codecommit_branch      = "main"
 3. Change the BUCKET_NAME in the file `terraform-containerized-lambda-deployment/terraform/providers.tf` with the bucket you created in pre-requisites. Use the bucket name, not the ARN
 4. Change the BUCKET_NAME in the file `terraform-containerized-lambda-deployment/aws_lambda_functions/providers.tf` with the bucket you created in pre-requisites. Use the bucket name, not the ARN
 5. Change the BUCKET_NAME in the file `terraform-containerized-lambda-deployment/terraform/modules/codepipeline/roles.tf` with the bucket you created in pre-requisites. Use the Bucket ARN here.
+6. Change the name in aws_codestarconnections_connection" "githubconnection"  in the file `terraform-containerized-lambda-deployment/terraform/modules/codepipeline/main.tf` with the name of the connection you created in pre-requisites.
+7. 6. Change the FullRepositoryId  in the file `terraform-containerized-lambda-deployment/terraform/modules/codepipeline/main.tf` with the name of the repository you created in pre-requisites.
 
 You are all set. Let's run the code
 
