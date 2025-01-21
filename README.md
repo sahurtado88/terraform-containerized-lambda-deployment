@@ -25,6 +25,7 @@ To achieve this, follow the pre-requisites steps below
 
 
 ## Folder Structure
+```
 .
 |-- img
 |   |-- codepipeline-output.png
@@ -65,6 +66,7 @@ To achieve this, follow the pre-requisites steps below
 |   |-- variables.tf
 |   `-- versions.tf
 `-- README.md
+```
 
 ## Provision Infrastructure and Lambda code
 
