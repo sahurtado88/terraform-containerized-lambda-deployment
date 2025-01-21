@@ -1,60 +1,38 @@
 # Containerized AWS Lambda Deployments with Terraform
 
-Terraform version: 1.1.6
-
-## Getting started
-
-1. Copy, populate, and source `env.sh`
-
-    ```
-    cp env.sh.template env.sh
-    nano env.sh
-    source env.sh
-
-    cp aws_lambda_functions/profile_faker/env.sh.template aws_lambda_functions/profile_faker/env.sh
-    nano aws_lambda_functions/profile_faker/env.sh
-    source aws_lambda_functions/profile_faker/env.sh
-    ```
-
-2. Build and push docker image
-
-   ```
-   cd aws_lambda_functions/profile_faker
-   make docker/push TAG=dev
-   cd -
-   ```
-
-3. Run terraform
-
-   ```
-   terraform init
-   terraform plan
-   terraform apply
-   ```
-
+We will be provisioning AWS Codepipeline and its supporting AWS Services like AWS Codbuild and AWS ECR and finally using the provisioned codepipeline to provision lambda resource and deploy a sample lambda application ref folder: aws_lambda_functions into AWS.
 __________________________________________________________________
 
-Pre-requisites
+## Pre-requisites
+
 This code is split into two parts,
+
+1. Infrastructure for Codepipeline Deployment. ie, code under the path ```terraform/```
+2. Uploading the Lambda code to CodeCommit Repository. ie, lambda code on path ```aws_lambda_functions/```
+
+To achieve this, follow the pre-requisites steps below
+
+1. Install Terraform : [link](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+2. Install AWS CLI : [link](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+3. Configure AWS CLI with AWS Account do : [link](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
+4. Create a S3 Bucket in us-east-1. This bucket will be used to store the terraform state file. Note the bucket arn as it will be used in the steps below.
+
+
 
 Infrastructure for Codepipeline Deployment. ie, code under the path terraform/
 Uploading the Lambda code to CodeCommit Repository. ie, lambda code on path lambda_bootstrap/
 To achieve this, follow the pre-requisites steps below
 
-Install Terraform : link
-Install AWS CLI : link
-Configure AWS CLI with AWS Account do aws sts get-caller-identity for validation) : link
-Create a S3 Bucket in us-east-1. This bucket will be used to store the terraform state file. Note the bucket arn as it will be used in the steps below.
-Folder Structure
+
+## Folder Structure
 .
 |-- img
 |   |-- codepipeline-output.png
 |   `-- codepipeline-using-terraform.png
-|-- lambda_bootstrap
-|   |-- lambda
+|-- aws_lambda_functions
+|   |-- profile_faker
 |   |   |-- Dockerfile
-|   |   |-- aws-lambda-url.py
-|   |   |-- docker-test.sh
+|   |   |-- main.py
 |   |   `-- requirements.txt
 |   |-- main.tf
 |   |-- outputs.tf
@@ -87,66 +65,76 @@ Folder Structure
 |   |-- variables.tf
 |   `-- versions.tf
 `-- README.md
-Provision Infrastructure
+
+## Provision Infrastructure and Lambda code
+
 Deploying the Infrastructure:
 
-Navigate to the directory cd create-codepipeline-using-terraform/terraform
-Open the file terraform.tfvars and change the ORG_NAME, TEAM_NAME and PROJECT_ID. Example file below,
-org_name   = "cloudplatform"
-team_name  = "devteam"
-project_id = "deployment123"
-region     = "us-east-1"
-env = {
-  "dev" = "dev"
-  "qa"  = "qa"
-}
-codebuild_compute_type = "BUILD_GENERAL1_MEDIUM"
-codebuild_image        = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
-codebuild_type         = "LINUX_CONTAINER"
-codecommit_branch      = "master"
+1. Navigate to the directory `cd create-codepipeline-using-terraform/terraform` 
+2. Open the file `terraform.tfvars` and change the ORG_NAME, TEAM_NAME and PROJECT_ID. Example file below,
 
-Change the BUCKET_NAME in the file codepipeline-for-lambda-using-terraform/terraform/providers.tf with the bucket you created in pre-requisites. Use the bucket name, not the ARN
-Change the BUCKET_NAME in the file codepipeline-for-lambda-using-terraform/lambda_bootstrap/providers.tf with the bucket you created in pre-requisites. Use the bucket name, not the ARN
-Change the BUCKET_NAME in the file codepipeline-for-lambda-using-terraform/terraform/modules/codepipeline/roles.tf with the bucket you created in pre-requisites. Use the Bucket ARN here.
+```
+org_name               = "sahurtado"
+team_name              = "devops"
+region                 = "us-east-1"
+project_id             = "01172025"
+codebuild_compute_type = "BUILD_GENERAL1_MEDIUM"
+codebuild_image        = "aws/codebuild/amazonlinux-x86_64-standard:5.0"
+codebuild_type         = "LINUX_CONTAINER"
+codecommit_branch      = "main"
+
+```
+
+3. Change the BUCKET_NAME in the file `terraform-containerized-lambda-deployment/terraform/providers.tf` with the bucket you created in pre-requisites. Use the bucket name, not the ARN
+4. Change the BUCKET_NAME in the file `terraform-containerized-lambda-deployment/aws_lambda_functions/providers.tf` with the bucket you created in pre-requisites. Use the bucket name, not the ARN
+5. Change the BUCKET_NAME in the file `terraform-containerized-lambda-deployment/terraform/modules/codepipeline/roles.tf` with the bucket you created in pre-requisites. Use the Bucket ARN here.
+
 You are all set. Let's run the code
 
-Navigate to the directory cd create-codepipeline-using-terraform/terraform
+1. Navigate to the directory `cd terraform-containerized-lambda-deployment/terraform` 
+2. Run `terraform init`
+3. Run `terraform validate`
+4. Run `terraform plan`  and review the output in `terminal`
+5. Run `terraform apply` and review the output in `terminal` and when ready, type `yes` and hit enter
+6. You should be seeing a output similar to this:
 
-Run terraform init
+   ```
+   Apply complete! Resources: 10 added, 0 changed, 0 destroyed.
+   
+   Outputs:
 
-Run terraform validate
+   codecommit = "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/sahurtado_devops_01172025_code_repo"
 
-Run terraform plan and review the output in terminal
+   codepipeline = "arn:aws:codepipeline:us-east-1:<account#>:sahurtado_devops_01172025_dev_pipeline"
 
-Run terraform apply and review the output in terminal and when ready, type yes and hit enter
+   ecrrepo = "<account#>.dkr.ecr.us-east-1.amazonaws.com/sahurtado_devops_01172025_repo"
+  
+   ```
 
-You should be seeing a output similar to this:
+We have completed provisioning the Infrastructure and now codepipeline push the Lambda code to codecommit which will trigger codepipeline to deploy the lambda code. 
 
-Apply complete! Resources: 11 added, 0 changed, 0 destroyed.
+7. You can now navigate to AWS Codepipeline from `aws console` and check the pipeline status.
 
-Outputs:
+8. If everything goes well, you should be seeing an output simillar to this:   ![codepipeline-output](./img/codepipeline-output.png "codepipeline-output")
 
-codecommit = "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/cloudcomps_devops_tf123_code_repo"
+## Invoking functions with test events
 
-codepipeline = "arn:aws:codepipeline:us-east-1:<account#>:cloudcomps_devops_tf123_dev_pipeline"
 
-ecrrepo = "<account#>.dkr.ecr.us-east-1.amazonaws.com/cloudcomps_devops_tf123_docker_repo"
-Great, we have completed provisioning the Infrastructure. Now let's push the Lambda code to codecommit which will trigger codepipeline to deploy the lambda code.
+To test a function
 
-Run cd.. into the Root folder. From the output above, copy the code commit repository link.
-Run git clone <codecommit repo link>
-If credentials are required, Generate a CodeCommit credentials from aws console for the IAM user that you logged in:
-Select Users from IAM (Access Management Tab)
-Select the user that you want to provide CodeCommit Access to.
-Select Security Credentials from the User information panel.
-Scroll down and you should be seeing a subsection HTTPS Git credentials for AWS CodeCommit
-Click on Generate Credentials, you should be prompted with Download credentails in cvs file.
-Once git clone and git authentication is successful, cd to cloned directory. This directoy will be empty as we haven't pushed the code yet.
-Copy Lambda application code from lambda_bootstrap folder to git repo by running cp -R lambda_bootstrap codecommitrepo/ . For simplicity, I am referring the cloned repo as codecommitrepo.
-After this cd codecommitrepo and do a ls, the repo should look like below,
+1. Open the Functions page of the Lambda console.
 
-(master) $ ls
-lambda_bootstrap
-Push the changes to git repo by running git add. && git commit -m "Initial Commit" && git push
-Thats it!, you can now navigate to AWS Codepipeline from aws console and check the pipeline status.
-If everything goes well, you should be seeing an output simillar to this: codepipeline-output
+2. Choose the name of the function that you want to test in this cas ethe name of the lambda is profile-faker-sahurtado_devops_01172025_dev.
+
+3. Choose the Test tab.
+
+4. Under Test event, choose Create new event or Edit saved event and then choose the saved event that you want to use.
+
+5. Optionally - choose a Template for the event JSON.
+
+6. Choose Test.
+
+7. To review the test results, under Execution result, expand Details. you should be seeing an output simillar to this
+![testlambda-output](./img/testlambda.png "testlambda-output")
+
+
